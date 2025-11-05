@@ -15,16 +15,16 @@ load_dotenv()
 
 class GTMMCPServer:
     """MCP Server for Google Tag Manager operations."""
-    
+
     def __init__(self):
         self.server = Server("gtm-mcp")
         self.gtm_client = None
         self.tools = GTMTools()
         self._setup_handlers()
-    
+
     def _setup_handlers(self):
         """Setup MCP server handlers."""
-        
+
         @self.server.list_tools()
         async def handle_list_tools() -> List[Tool]:
             """Return list of available GTM tools."""
@@ -149,7 +149,7 @@ class GTMMCPServer:
                 ),
                 Tool(
                     name="gtm_create_trigger",
-                    description="Create a new trigger in a GTM container",
+                    description="Create a new trigger in a GTM container. For Custom Event triggers, use custom_event_name parameter for simplified creation.",
                     inputSchema={
                         "type": "object",
                         "properties": {
@@ -178,9 +178,13 @@ class GTMMCPServer:
                                     "scrollDepth", "elementVisibility"
                                 ]
                             },
+                            "custom_event_name": {
+                                "type": "string",
+                                "description": "For Custom Event triggers: the event name to match (e.g., 'purchase', 'add_to_cart'). This automatically generates the customEventFilter."
+                            },
                             "trigger_config": {
                                 "type": "object",
-                                "description": "Trigger configuration parameters"
+                                "description": "Trigger configuration parameters (optional if using custom_event_name)"
                             }
                         },
                         "required": ["workspace_path", "trigger_name", "trigger_type"]
@@ -263,19 +267,19 @@ class GTMMCPServer:
                     }
                 )
             ]
-        
+
         @self.server.call_tool()
         async def handle_call_tool(name: str, arguments: Optional[Dict[str, Any]]) -> List[TextContent]:
             """Handle tool execution."""
             if not self.gtm_client:
                 self.gtm_client = GTMClient()
-            
+
             try:
                 result = await self.tools.execute_tool(name, arguments, self.gtm_client)
                 return [TextContent(type="text", text=json.dumps(result, indent=2))]
             except Exception as e:
                 return [TextContent(type="text", text=f"Error executing tool: {str(e)}")]
-    
+
 async def main():
     """Main entry point."""
     server_instance = GTMMCPServer()

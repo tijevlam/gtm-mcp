@@ -2,6 +2,7 @@
 
 from typing import Any, Dict, Optional
 from .gtm_client import GTMClient
+from .helpers import build_custom_event_filter
 
 
 class GTMTools:
@@ -164,16 +165,33 @@ class GTMTools:
     async def _create_trigger(
         self, args: Dict[str, Any], client: GTMClient
     ) -> Dict[str, Any]:
-        """Create a new trigger."""
-        workspace_path = args["workspace_path"]
+        """Create a new trigger.
 
-        trigger_data = {"name": args["trigger_name"], "type": args["trigger_type"]}
+        Supports both direct API field passing and simplified configurations.
+        For Custom Event triggers, can use either:
+        1. Direct customEventFilter in trigger_config
+        2. Simplified custom_event_name parameter (auto-generates filter)
+        """
+        workspace_path = args["workspace_path"]
+        trigger_type = args["trigger_type"]
+
+        trigger_data = {
+            "name": args["trigger_name"],
+            "type": trigger_type
+        }
+
+        # Handle custom_event_name parameter for simplified Custom Event trigger creation
+        custom_event_name = args.get("custom_event_name")
+
+        if trigger_type == "customEvent" and custom_event_name:
+            # Use helper function to build the customEventFilter
+            trigger_data["customEventFilter"] = build_custom_event_filter(custom_event_name)
 
         if "trigger_config" in args:
             config = args["trigger_config"]
 
             # Handle trigger groups with trigger ID references
-            if args["trigger_type"] == "triggerGroup" and "trigger_ids" in config:
+            if trigger_type == "triggerGroup" and "trigger_ids" in config:
                 trigger_data["parameter"] = [
                     {
                         "type": "list",
@@ -214,59 +232,27 @@ class GTMTools:
                 "parameter",
                 "eventName",
             ]
-            event_types = [
-                "eventTypeUnspecified",
-                "pageview",
-                "domReady",
-                "windowLoaded",
-                "customEvent",
-                "triggerGroup",
-                "init",
-                "consentInit",
-                "serverPageview",
-                "always",
-                "firebaseAppException",
-                "firebaseAppUpdate",
-                "firebaseCampaign",
-                "firebaseFirstOpen",
-                "firebaseInAppPurchase",
-                "firebaseNotificationDismiss",
-                "firebaseNotificationForeground",
-                "firebaseNotificationOpen",
-                "firebaseNotificationReceive",
-                "firebaseOsUpdate",
-                "firebaseSessionStart",
-                "firebaseUserEngagement",
-                "formSubmission",
-                "click",
-                "linkClick",
-                "jsError",
-                "historyChange",
-                "timer",
-                "ampClick",
-                "ampTimer",
-                "ampScroll",
-                "ampVisibility",
-                "youTubeVideo",
-                "scrollDepth",
-                "elementVisibility",
-            ]
+
             for field in api_fields:
                 if field in config:
+                    # Don't override customEventFilter if it was already set by custom_event_name
+                    if field == "customEventFilter" and custom_event_name:
+                        continue
                     # Don't override parameter if it was already set for trigger groups
                     if (
                         field == "parameter"
-                        and args["trigger_type"] == "triggerGroup"
+                        and trigger_type == "triggerGroup"
                         and "trigger_ids" in config
                     ):
                         continue
                     trigger_data[field] = config[field]
 
-            # Legacy support for simplified configurations
+            # Legacy support for simplified custom event configurations
+            # Only apply if customEventFilter wasn't already set
             if (
-                args["trigger_type"] == "customEvent"
+                trigger_type == "customEvent"
                 and "event_name" in config
-                and "customEventFilter" not in config
+                and "customEventFilter" not in trigger_data
             ):
                 match_type = config.get("match_type", "equals")
                 trigger_data["customEventFilter"] = [
@@ -283,12 +269,20 @@ class GTMTools:
                     }
                 ]
 
+        # Validate that Custom Event triggers have a filter
+        if trigger_type == "customEvent" and "customEventFilter" not in trigger_data:
+            raise ValueError(
+                "Custom Event triggers require either 'custom_event_name' parameter "
+                "or 'customEventFilter' in trigger_config"
+            )
+
         result = client.create_trigger(workspace_path, trigger_data)
         return {
             "success": True,
             "trigger": {
                 "triggerId": result.get("triggerId"),
                 "name": result.get("name"),
+                "type": result.get("type"),
                 "path": result.get("path"),
             },
         }
