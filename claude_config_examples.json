@@ -1,0 +1,59 @@
+{
+  "_comment": "Example configurations for GTM MCP Server. Choose the method that best fits your needs.",
+  
+  "service_account_example": {
+    "_description": "Service Account Authentication (Recommended for servers)",
+    "mcpServers": {
+      "gtm-mcp": {
+        "command": "gtm-mcp",
+        "env": {
+          "GTM_AUTH_METHOD": "service_account",
+          "GOOGLE_APPLICATION_CREDENTIALS": "/path/to/your/service-account-key.json"
+        }
+      }
+    }
+  },
+  
+  "oauth_example": {
+    "_description": "OAuth 2.0 Authentication (Good for personal desktop use)",
+    "mcpServers": {
+      "gtm-mcp": {
+        "command": "gtm-mcp",
+        "env": {
+          "GTM_AUTH_METHOD": "oauth",
+          "GTM_CLIENT_ID": "your-client-id.apps.googleusercontent.com",
+          "GTM_CLIENT_SECRET": "GOCSPX-your-client-secret",
+          "GTM_PROJECT_ID": "your-project-id"
+        }
+      }
+    }
+  },
+  
+  "oauth_default_example": {
+    "_description": "OAuth 2.0 Authentication (Default - GTM_AUTH_METHOD is optional)",
+    "mcpServers": {
+      "gtm-mcp": {
+        "command": "gtm-mcp",
+        "env": {
+          "GTM_CLIENT_ID": "your-client-id.apps.googleusercontent.com",
+          "GTM_CLIENT_SECRET": "GOCSPX-your-client-secret",
+          "GTM_PROJECT_ID": "your-project-id"
+        }
+      }
+    }
+  },
+  
+  "with_account_restriction": {
+    "_description": "Service Account with Account ID Restriction",
+    "mcpServers": {
+      "gtm-mcp": {
+        "command": "gtm-mcp",
+        "env": {
+          "GTM_AUTH_METHOD": "service_account",
+          "GOOGLE_APPLICATION_CREDENTIALS": "/path/to/your/service-account-key.json",
+          "GTM_ACCOUNT_ID": "1234567890"
+        }
+      }
+    }
+  }
+}
