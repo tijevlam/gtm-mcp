@@ -179,37 +179,41 @@ Verify your package structure:
 
 ### GitHub Actions
 
-Create `.github/workflows/publish.yml` for automatic publishing:
+The repository includes two GitHub Actions workflows:
 
-```yaml
-name: Publish to PyPI
+#### 1. Automatic Build and Test (`.github/workflows/build-test.yml`)
 
-on:
-  release:
-    types: [published]
+Automatically tests the package build on multiple Python versions (3.10, 3.11, 3.12, 3.13) for every push and pull request.
 
-jobs:
-  publish:
-    runs-on: ubuntu-latest
-    steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
-        with:
-          python-version: '3.10'
-      - name: Install Poetry
-        run: pip install poetry
-      - name: Build package
-        run: poetry build
-      - name: Publish to PyPI
-        env:
-          POETRY_PYPI_TOKEN_PYPI: ${{ secrets.PYPI_TOKEN }}
-        run: poetry publish
-```
+#### 2. Publish to PyPI (`.github/workflows/publish-to-pypi.yml`)
 
-Then add your PyPI token as a GitHub secret:
-1. Go to repository Settings → Secrets and variables → Actions
-2. Create new repository secret: `PYPI_TOKEN`
-3. Paste your PyPI API token
+Automatically publishes to PyPI when you create a GitHub release, or manually via workflow dispatch.
+
+**Setup GitHub Secrets:**
+
+1. Go to your GitHub repository
+2. Navigate to Settings → Secrets and variables → Actions
+3. Click "New repository secret"
+4. Add the following secrets:
+
+   - **PYPI_TOKEN**: Your PyPI API token (required for production publishing)
+     - Token from https://pypi.org/manage/account/token/
+   
+   - **TESTPYPI_TOKEN**: Your TestPyPI API token (optional, for testing)
+     - Token from https://test.pypi.org/manage/account/token/
+
+**Usage:**
+
+- **Automatic publish**: Create a GitHub release (tag format: `v0.1.0`), and the workflow will automatically build and publish to PyPI
+- **Manual publish**: Go to Actions → "Publish to PyPI" → "Run workflow" and choose target (pypi or testpypi)
+
+**Creating a GitHub Release:**
+
+1. Go to your repository → Releases → "Draft a new release"
+2. Click "Choose a tag" and create a new tag (e.g., `v0.1.0`)
+3. Fill in release title and description
+4. Click "Publish release"
+5. The workflow will automatically trigger and publish to PyPI
 
 ## Best Practices
 
