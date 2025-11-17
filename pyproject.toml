@@ -2,13 +2,13 @@
 name = "gtm-mcp"
 version = "0.0.1"
 description = "MCP server for Google Tag Manager"
-authors = ["Paolo Bietolini"]
+authors = ["Paolo Bietolini", "Tije Vlam"]
 license = "MIT"
 readme = "README.md"
 packages = [{ include = "gtm_mcp", from = "src" }]
 
 [tool.poetry.dependencies]
-python = "^3.12"
+python = "^3.11.2"
 google-api-python-client = "^2.186.0"
 google-auth = "^2.41.0"
 google-auth-oauthlib = "^1.2.3"
