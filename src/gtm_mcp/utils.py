@@ -1,7 +1,8 @@
 import os
 from pathlib import Path
-from typing import Dict, Any, List
+from typing import Dict, Any, List, Optional
 from google.oauth2.credentials import Credentials
+from google.oauth2 import service_account
 from google.auth.credentials import TokenState
 from google.auth.transport.requests import Request
 from google_auth_oauthlib.flow import InstalledAppFlow
@@ -26,13 +27,86 @@ class GTMAuth:
         self.version = version
         self.scopes = scopes
         self.credentials = None
+        self.auth_method = os.getenv("GTM_AUTH_METHOD", "oauth").lower()
 
     def authenticate(self):
         """
         Authenticate with Google Tag Manager API and return service client.
+        
+        Supports two authentication methods:
+        1. OAuth 2.0 (default): Uses GTM_CLIENT_ID, GTM_CLIENT_SECRET, GTM_PROJECT_ID
+        2. Service Account: Uses GOOGLE_APPLICATION_CREDENTIALS
 
         Returns:
             Google API service client
+        """
+        if self.auth_method == "service_account":
+            credentials = self._authenticate_service_account()
+        elif self.auth_method == "oauth":
+            credentials = self._authenticate_oauth()
+        else:
+            raise ValueError(
+                f"Invalid GTM_AUTH_METHOD: '{self.auth_method}'. "
+                f"Must be 'oauth' or 'service_account'"
+            )
+
+        self.credentials = credentials
+        service = build(self.service_name, self.version, credentials=credentials)
+        return service
+
+    def _authenticate_service_account(self) -> service_account.Credentials:
+        """
+        Authenticate using service account credentials.
+        
+        Requires the GOOGLE_APPLICATION_CREDENTIALS environment variable
+        to point to a service account JSON file.
+        
+        Returns:
+            Service account credentials
+        """
+        credentials_path = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
+        
+        if not credentials_path:
+            raise ValueError(
+                "Missing service account credentials!\n\n"
+                "When using GTM_AUTH_METHOD=service_account, you must set:\n"
+                "  - GOOGLE_APPLICATION_CREDENTIALS: Path to service account JSON file\n\n"
+                "To create a service account:\n"
+                "1. Go to Google Cloud Console\n"
+                "2. Create a new service account\n"
+                "3. Download the JSON key file\n"
+                "4. Grant the service account access to your GTM account\n\n"
+                "See the README for detailed setup instructions."
+            )
+        
+        if not os.path.exists(credentials_path):
+            raise ValueError(
+                f"Service account file not found: {credentials_path}\n\n"
+                f"Please ensure GOOGLE_APPLICATION_CREDENTIALS points to a valid JSON file."
+            )
+        
+        try:
+            credentials = service_account.Credentials.from_service_account_file(
+                credentials_path,
+                scopes=self.scopes
+            )
+            print(f"✓ Authenticated using service account from: {credentials_path}")
+            return credentials
+        except Exception as e:
+            raise ValueError(
+                f"Failed to load service account credentials: {e}\n\n"
+                f"Please ensure the file at {credentials_path} is a valid service account JSON file."
+            )
+
+    def _authenticate_oauth(self) -> Credentials:
+        """
+        Authenticate using OAuth 2.0 flow.
+        
+        This is the original authentication method that requires
+        GTM_CLIENT_ID, GTM_CLIENT_SECRET, and GTM_PROJECT_ID.
+        
+        Returns:
+            OAuth credentials
         """
         credentials = None
 
@@ -65,10 +139,9 @@ class GTMAuth:
             # Save credentials for future use
             self.token_file.parent.mkdir(parents=True, exist_ok=True)
             self.token_file.write_text(credentials.to_json())
-
-        self.credentials = credentials
-        service = build(self.service_name, self.version, credentials=credentials)
-        return service
+        
+        print(f"✓ Authenticated using OAuth 2.0")
+        return credentials
 
     def _get_client_config(self) -> Dict[str, Any]:
         """
