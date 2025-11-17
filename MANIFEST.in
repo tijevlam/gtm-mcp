@@ -1,0 +1,8 @@
+include README.md
+include LICENSE
+include CHANGES.md
+include pyproject.toml
+include poetry.lock
+recursive-include src *.py
+recursive-exclude * __pycache__
+recursive-exclude * *.py[co]

@@ -1,5 +1,9 @@
 # GTM MCP Server
 
+[![PyPI version](https://badge.fury.io/py/gtm-mcp.svg)](https://badge.fury.io/py/gtm-mcp)
+[![Python Version](https://img.shields.io/pypi/pyversions/gtm-mcp.svg)](https://pypi.org/project/gtm-mcp/)
+[![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
+
 A Model Context Protocol (MCP) server that enables Claude to interact with Google Tag Manager.
 
 ## Table of Contents
