@@ -266,6 +266,126 @@ class GTMMCPServer:
                         },
                         "required": ["workspace_path", "version_name"]
                     }
+                ),
+                Tool(
+                    name="gtm_list_versions",
+                    description="List all versions of a GTM container",
+                    inputSchema={
+                        "type": "object",
+                        "properties": {
+                            "container_path": {
+                                "type": "string",
+                                "description": "Full container path (e.g., accounts/123/containers/456)"
+                            },
+                            "include_deleted": {
+                                "type": "boolean",
+                                "description": "Whether to include deleted (archived) versions. Default: false"
+                            }
+                        },
+                        "required": ["container_path"]
+                    }
+                ),
+                Tool(
+                    name="gtm_get_version",
+                    description="Get detailed information about a specific container version",
+                    inputSchema={
+                        "type": "object",
+                        "properties": {
+                            "version_path": {
+                                "type": "string",
+                                "description": "Full version path (e.g., accounts/123/containers/456/versions/7)"
+                            }
+                        },
+                        "required": ["version_path"]
+                    }
+                ),
+                Tool(
+                    name="gtm_get_live_version",
+                    description="Get the currently published (live) version of a container",
+                    inputSchema={
+                        "type": "object",
+                        "properties": {
+                            "container_path": {
+                                "type": "string",
+                                "description": "Full container path (e.g., accounts/123/containers/456)"
+                            }
+                        },
+                        "required": ["container_path"]
+                    }
+                ),
+                Tool(
+                    name="gtm_get_latest_version",
+                    description="Get the latest version of a container (may not be published)",
+                    inputSchema={
+                        "type": "object",
+                        "properties": {
+                            "container_path": {
+                                "type": "string",
+                                "description": "Full container path (e.g., accounts/123/containers/456)"
+                            }
+                        },
+                        "required": ["container_path"]
+                    }
+                ),
+                Tool(
+                    name="gtm_delete_version",
+                    description="Delete (archive) a container version. The version can be restored later.",
+                    inputSchema={
+                        "type": "object",
+                        "properties": {
+                            "version_path": {
+                                "type": "string",
+                                "description": "Full version path (e.g., accounts/123/containers/456/versions/7)"
+                            }
+                        },
+                        "required": ["version_path"]
+                    }
+                ),
+                Tool(
+                    name="gtm_undelete_version",
+                    description="Restore a previously deleted (archived) container version",
+                    inputSchema={
+                        "type": "object",
+                        "properties": {
+                            "version_path": {
+                                "type": "string",
+                                "description": "Full version path (e.g., accounts/123/containers/456/versions/7)"
+                            }
+                        },
+                        "required": ["version_path"]
+                    }
+                ),
+                Tool(
+                    name="gtm_update_version",
+                    description="Update metadata of a container version (name, description, notes)",
+                    inputSchema={
+                        "type": "object",
+                        "properties": {
+                            "version_path": {
+                                "type": "string",
+                                "description": "Full version path (e.g., accounts/123/containers/456/versions/7)"
+                            },
+                            "version_data": {
+                                "type": "object",
+                                "description": "Version data to update. Can include: name, description, notes, fingerprint"
+                            }
+                        },
+                        "required": ["version_path", "version_data"]
+                    }
+                ),
+                Tool(
+                    name="gtm_set_latest_version",
+                    description="Mark a container version as the latest version",
+                    inputSchema={
+                        "type": "object",
+                        "properties": {
+                            "version_path": {
+                                "type": "string",
+                                "description": "Full version path (e.g., accounts/123/containers/456/versions/7)"
+                            }
+                        },
+                        "required": ["version_path"]
+                    }
                 )
             ]
 
