@@ -1,5 +1,6 @@
 """GTM tool implementations for MCP."""
 
+import asyncio
 from typing import Any, Dict, Optional
 from .gtm_client import GTMClient
 from .helpers import build_custom_event_filter
@@ -45,7 +46,7 @@ class GTMTools:
         self, args: Dict[str, Any], client: GTMClient
     ) -> Dict[str, Any]:
         """List GTM accounts."""
-        accounts = client.list_accounts()
+        accounts = await asyncio.to_thread(client.list_accounts)
         return {
             "accounts": [
                 {
@@ -62,7 +63,7 @@ class GTMTools:
     ) -> Dict[str, Any]:
         """List containers in an account."""
         account_id = args["account_id"]
-        containers = client.list_containers(account_id)
+        containers = await asyncio.to_thread(client.list_containers, account_id)
         return {
             "containers": [
                 {
@@ -84,7 +85,7 @@ class GTMTools:
 
         # Get workspace path
         if not workspace_id:
-            workspaces = client.list_workspaces(container_path)
+            workspaces = await asyncio.to_thread(client.list_workspaces, container_path)
             if workspaces:
                 workspace_path = workspaces[0]["path"]  # Use default workspace
             else:
@@ -92,7 +93,7 @@ class GTMTools:
         else:
             workspace_path = f"{container_path}/workspaces/{workspace_id}"
 
-        tags = client.list_tags(workspace_path)
+        tags = await asyncio.to_thread(client.list_tags, workspace_path)
         return {
             "tags": [
                 {
@@ -108,7 +109,7 @@ class GTMTools:
     async def _get_tag(self, args: Dict[str, Any], client: GTMClient) -> Dict[str, Any]:
         """Get detailed tag configuration."""
         tag_path = args["tag_path"]
-        tag = client.get_tag(tag_path)
+        tag = await asyncio.to_thread(client.get_tag, tag_path)
         return {"tag": tag}
 
     async def _create_tag(
@@ -125,7 +126,7 @@ class GTMTools:
         if "firing_trigger_ids" in args:
             tag_data["firingTriggerId"] = args["firing_trigger_ids"]
 
-        result = client.create_tag(workspace_path, tag_data)
+        result = await asyncio.to_thread(client.create_tag, workspace_path, tag_data)
         return {
             "success": True,
             "tag": {
@@ -142,7 +143,7 @@ class GTMTools:
         tag_path = args["tag_path"]
         tag_data = args["tag_data"]
 
-        result = client.update_tag(tag_path, tag_data)
+        result = await asyncio.to_thread(client.update_tag, tag_path, tag_data)
         return {
             "success": True,
             "tag": {
@@ -157,7 +158,7 @@ class GTMTools:
     ) -> Dict[str, Any]:
         """List triggers in a workspace."""
         workspace_path = args["workspace_path"]
-        triggers = client.list_triggers(workspace_path)
+        triggers = await asyncio.to_thread(client.list_triggers, workspace_path)
         return {
             "triggers": [
                 {
@@ -284,7 +285,7 @@ class GTMTools:
                 "or 'customEventFilter' in trigger_config"
             )
 
-        result = client.create_trigger(workspace_path, trigger_data)
+        result = await asyncio.to_thread(client.create_trigger, workspace_path, trigger_data)
         return {
             "success": True,
             "trigger": {
@@ -304,14 +305,14 @@ class GTMTools:
         version_notes = args.get("version_notes", "")
 
         # Create version
-        version = client.create_version(workspace_path, version_name, version_notes)
+        version = await asyncio.to_thread(client.create_version, workspace_path, version_name, version_notes)
         version_path = version.get("containerVersion", {}).get("path")
 
         if not version_path:
             raise ValueError("Failed to create version")
 
         # Publish version
-        result = client.publish_version(version_path)
+        result = await asyncio.to_thread(client.publish_version, version_path)
         return {
             "success": True,
             "version": {
@@ -328,7 +329,7 @@ class GTMTools:
     ) -> Dict[str, Any]:
         """List variables in a workspace."""
         workspace_path = args["workspace_path"]
-        variables = client.list_variables(workspace_path)
+        variables = await asyncio.to_thread(client.list_variables, workspace_path)
         return {
             "variables": [
                 {
@@ -346,7 +347,7 @@ class GTMTools:
     ) -> Dict[str, Any]:
         """Get detailed variable configuration."""
         variable_path = args["variable_path"]
-        variable = client.get_variable(variable_path)
+        variable = await asyncio.to_thread(client.get_variable, variable_path)
         return {"variable": variable}
 
     async def _create_variable(
@@ -434,7 +435,7 @@ class GTMTools:
                 # Generic parameter handling
                 variable_data["parameter"] = self._build_parameters(config)
 
-        result = client.create_variable(workspace_path, variable_data)
+        result = await asyncio.to_thread(client.create_variable, workspace_path, variable_data)
         return {
             "success": True,
             "variable": {
@@ -478,7 +479,7 @@ class GTMTools:
         container_path = args["container_path"]
         include_deleted = args.get("include_deleted", False)
         
-        versions = client.list_versions(container_path, include_deleted)
+        versions = await asyncio.to_thread(client.list_versions, container_path, include_deleted)
         return {
             "versions": [
                 {
@@ -496,7 +497,7 @@ class GTMTools:
     ) -> Dict[str, Any]:
         """Get details of a specific container version."""
         version_path = args["version_path"]
-        version = client.get_version(version_path)
+        version = await asyncio.to_thread(client.get_version, version_path)
         return {"version": version}
 
     async def _get_live_version(
@@ -504,7 +505,7 @@ class GTMTools:
     ) -> Dict[str, Any]:
         """Get the currently published (live) version."""
         container_path = args["container_path"]
-        version = client.get_live_version(container_path)
+        version = await asyncio.to_thread(client.get_live_version, container_path)
         return {"version": version}
 
     async def _get_latest_version(
@@ -512,7 +513,7 @@ class GTMTools:
     ) -> Dict[str, Any]:
         """Get the latest version header."""
         container_path = args["container_path"]
-        version = client.get_latest_version(container_path)
+        version = await asyncio.to_thread(client.get_latest_version, container_path)
         return {"version": version}
 
     async def _delete_version(
@@ -520,7 +521,7 @@ class GTMTools:
     ) -> Dict[str, Any]:
         """Delete (archive) a container version."""
         version_path = args["version_path"]
-        client.delete_version(version_path)
+        await asyncio.to_thread(client.delete_version, version_path)
         return {
             "success": True,
             "message": f"Version deleted successfully: {version_path}"
@@ -531,7 +532,7 @@ class GTMTools:
     ) -> Dict[str, Any]:
         """Restore a deleted version."""
         version_path = args["version_path"]
-        version = client.undelete_version(version_path)
+        version = await asyncio.to_thread(client.undelete_version, version_path)
         return {
             "success": True,
             "version": {
@@ -547,7 +548,7 @@ class GTMTools:
         """Update version metadata."""
         version_path = args["version_path"]
         version_data = args["version_data"]
-        version = client.update_version(version_path, version_data)
+        version = await asyncio.to_thread(client.update_version, version_path, version_data)
         return {
             "success": True,
             "version": {
@@ -562,7 +563,7 @@ class GTMTools:
     ) -> Dict[str, Any]:
         """Set a version as the latest version."""
         version_path = args["version_path"]
-        version = client.set_latest_version(version_path)
+        version = await asyncio.to_thread(client.set_latest_version, version_path)
         return {
             "success": True,
             "version": {
