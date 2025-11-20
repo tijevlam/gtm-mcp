@@ -2,11 +2,11 @@ import os
 from pathlib import Path
 from typing import Dict, Any, List, Optional
 from google.oauth2.credentials import Credentials
-from google.oauth2 import service_account
 from google.auth.credentials import TokenState
 from google.auth.transport.requests import Request
 from google_auth_oauthlib.flow import InstalledAppFlow
 from googleapiclient.discovery import build
+import google.auth
 
 
 class GTMAuth:
@@ -54,48 +54,57 @@ class GTMAuth:
         service = build(self.service_name, self.version, credentials=credentials)
         return service
 
-    def _authenticate_service_account(self) -> service_account.Credentials:
+    def _authenticate_service_account(self) -> google.auth.credentials.Credentials:
         """
-        Authenticate using service account credentials.
+        Authenticate using Application Default Credentials (ADC).
         
-        Requires the GOOGLE_APPLICATION_CREDENTIALS environment variable
-        to point to a service account JSON file.
+        ADC automatically discovers credentials from multiple sources:
+        1. GOOGLE_APPLICATION_CREDENTIALS environment variable pointing to a service account JSON file
+        2. Google Cloud SDK credentials (gcloud auth application-default login)
+        3. Service account attached to GCE/GKE/Cloud Run instances
+        4. Other Google Cloud environments
         
         Returns:
-            Service account credentials
+            Application Default Credentials
         """
-        credentials_path = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
-        
-        if not credentials_path:
+        try:
+            credentials, project = google.auth.default(scopes=self.scopes)
+            
+            # Get credential source for logging
+            cred_source = "Application Default Credentials"
+            credentials_path = os.getenv("GOOGLE_APPLICATION_CREDENTIALS")
+            if credentials_path:
+                cred_source = f"service account file: {credentials_path}"
+            elif hasattr(credentials, '_service_account_email'):
+                cred_source = "GCE/GKE/Cloud Run service account"
+            elif hasattr(credentials, 'token'):
+                cred_source = "gcloud CLI credentials"
+            
+            print(f"✓ Authenticated using {cred_source}")
+            if project:
+                print(f"✓ Project: {project}")
+            
+            return credentials
+        except google.auth.exceptions.DefaultCredentialsError as e:
             raise ValueError(
-                "Missing service account credentials!\n\n"
-                "When using GTM_AUTH_METHOD=service_account, you must set:\n"
-                "  - GOOGLE_APPLICATION_CREDENTIALS: Path to service account JSON file\n\n"
-                "To create a service account:\n"
+                "Failed to load Application Default Credentials!\n\n"
+                "When using GTM_AUTH_METHOD=service_account, credentials can be provided via:\n"
+                "1. GOOGLE_APPLICATION_CREDENTIALS environment variable pointing to a service account JSON file\n"
+                "2. Google Cloud SDK: Run 'gcloud auth application-default login'\n"
+                "3. Running on GCE/GKE/Cloud Run with attached service account\n\n"
+                "For service account setup:\n"
                 "1. Go to Google Cloud Console\n"
                 "2. Create a new service account\n"
                 "3. Download the JSON key file\n"
-                "4. Grant the service account access to your GTM account\n\n"
+                "4. Grant the service account access to your GTM account\n"
+                "5. Set GOOGLE_APPLICATION_CREDENTIALS to the file path\n\n"
+                f"Error details: {e}\n\n"
                 "See the README for detailed setup instructions."
             )
-        
-        if not os.path.exists(credentials_path):
-            raise ValueError(
-                f"Service account file not found: {credentials_path}\n\n"
-                f"Please ensure GOOGLE_APPLICATION_CREDENTIALS points to a valid JSON file."
-            )
-        
-        try:
-            credentials = service_account.Credentials.from_service_account_file(
-                credentials_path,
-                scopes=self.scopes
-            )
-            print(f"✓ Authenticated using service account from: {credentials_path}")
-            return credentials
         except Exception as e:
             raise ValueError(
-                f"Failed to load service account credentials: {e}\n\n"
-                f"Please ensure the file at {credentials_path} is a valid service account JSON file."
+                f"Failed to authenticate with Application Default Credentials: {e}\n\n"
+                f"Please ensure your credentials are properly configured."
             )
 
     def _authenticate_oauth(self) -> Credentials:
