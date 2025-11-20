@@ -46,7 +46,7 @@ class GTMTools:
         self, args: Dict[str, Any], client: GTMClient
     ) -> Dict[str, Any]:
         """List GTM accounts."""
-        accounts = client.list_accounts()
+        accounts = await asyncio.to_thread(client.list_accounts)
         return {
             "accounts": [
                 {
@@ -63,7 +63,7 @@ class GTMTools:
     ) -> Dict[str, Any]:
         """List containers in an account."""
         account_id = args["account_id"]
-        containers = client.list_containers(account_id)
+        containers = await asyncio.to_thread(client.list_containers, account_id)
         return {
             "containers": [
                 {
@@ -85,7 +85,7 @@ class GTMTools:
 
         # Get workspace path
         if not workspace_id:
-            workspaces = client.list_workspaces(container_path)
+            workspaces = await asyncio.to_thread(client.list_workspaces, container_path)
             if workspaces:
                 workspace_path = workspaces[0]["path"]  # Use default workspace
             else:
@@ -93,7 +93,7 @@ class GTMTools:
         else:
             workspace_path = f"{container_path}/workspaces/{workspace_id}"
 
-        tags = client.list_tags(workspace_path)
+        tags = await asyncio.to_thread(client.list_tags, workspace_path)
         return {
             "tags": [
                 {
@@ -109,7 +109,7 @@ class GTMTools:
     async def _get_tag(self, args: Dict[str, Any], client: GTMClient) -> Dict[str, Any]:
         """Get detailed tag configuration."""
         tag_path = args["tag_path"]
-        tag = client.get_tag(tag_path)
+        tag = await asyncio.to_thread(client.get_tag, tag_path)
         return {"tag": tag}
 
     async def _create_tag(
@@ -126,7 +126,7 @@ class GTMTools:
         if "firing_trigger_ids" in args:
             tag_data["firingTriggerId"] = args["firing_trigger_ids"]
 
-        result = client.create_tag(workspace_path, tag_data)
+        result = await asyncio.to_thread(client.create_tag, workspace_path, tag_data)
         return {
             "success": True,
             "tag": {
@@ -143,7 +143,7 @@ class GTMTools:
         tag_path = args["tag_path"]
         tag_data = args["tag_data"]
 
-        result = client.update_tag(tag_path, tag_data)
+        result = await asyncio.to_thread(client.update_tag, tag_path, tag_data)
         return {
             "success": True,
             "tag": {
@@ -158,7 +158,7 @@ class GTMTools:
     ) -> Dict[str, Any]:
         """List triggers in a workspace."""
         workspace_path = args["workspace_path"]
-        triggers = client.list_triggers(workspace_path)
+        triggers = await asyncio.to_thread(client.list_triggers, workspace_path)
         return {
             "triggers": [
                 {
@@ -285,7 +285,7 @@ class GTMTools:
                 "or 'customEventFilter' in trigger_config"
             )
 
-        result = client.create_trigger(workspace_path, trigger_data)
+        result = await asyncio.to_thread(client.create_trigger, workspace_path, trigger_data)
         return {
             "success": True,
             "trigger": {
@@ -329,7 +329,7 @@ class GTMTools:
     ) -> Dict[str, Any]:
         """List variables in a workspace."""
         workspace_path = args["workspace_path"]
-        variables = client.list_variables(workspace_path)
+        variables = await asyncio.to_thread(client.list_variables, workspace_path)
         return {
             "variables": [
                 {
@@ -347,7 +347,7 @@ class GTMTools:
     ) -> Dict[str, Any]:
         """Get detailed variable configuration."""
         variable_path = args["variable_path"]
-        variable = client.get_variable(variable_path)
+        variable = await asyncio.to_thread(client.get_variable, variable_path)
         return {"variable": variable}
 
     async def _create_variable(
@@ -435,7 +435,7 @@ class GTMTools:
                 # Generic parameter handling
                 variable_data["parameter"] = self._build_parameters(config)
 
-        result = client.create_variable(workspace_path, variable_data)
+        result = await asyncio.to_thread(client.create_variable, workspace_path, variable_data)
         return {
             "success": True,
             "variable": {
