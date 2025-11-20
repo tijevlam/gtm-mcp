@@ -173,8 +173,17 @@ Once configured, Claude will have access to these GTM tools:
 | `gtm_list_triggers` | List triggers in a workspace |
 | `gtm_create_trigger` | Create a new trigger |
 | `gtm_list_variables` | List variables in a workspace |
+| `gtm_get_variable` | Get detailed configuration of a specific variable |
 | `gtm_create_variable` | Create a new variable (constant, data layer, cookie, URL, etc.) |
 | `gtm_publish_container` | Create and publish a new container version |
+| `gtm_list_versions` | List all versions of a container |
+| `gtm_get_version` | Get detailed information about a specific version |
+| `gtm_get_live_version` | Get the currently published (live) version |
+| `gtm_get_latest_version` | Get the latest version (may not be published) |
+| `gtm_delete_version` | Delete (archive) a container version |
+| `gtm_undelete_version` | Restore a deleted version |
+| `gtm_update_version` | Update version metadata (name, description, notes) |
+| `gtm_set_latest_version` | Mark a version as the latest |
 
 ---
 

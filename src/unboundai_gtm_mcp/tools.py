@@ -25,6 +25,14 @@ class GTMTools:
             "gtm_get_variable": self._get_variable,
             "gtm_create_variable": self._create_variable,
             "gtm_publish_container": self._publish_container,
+            "gtm_list_versions": self._list_versions,
+            "gtm_get_version": self._get_version,
+            "gtm_get_live_version": self._get_live_version,
+            "gtm_get_latest_version": self._get_latest_version,
+            "gtm_delete_version": self._delete_version,
+            "gtm_undelete_version": self._undelete_version,
+            "gtm_update_version": self._update_version,
+            "gtm_set_latest_version": self._set_latest_version,
         }
 
         handler = tool_map.get(name)
@@ -462,3 +470,104 @@ class GTMTools:
             else:
                 parameters.append({"type": "template", "key": key, "value": str(value)})
         return parameters
+
+    async def _list_versions(
+        self, args: Dict[str, Any], client: GTMClient
+    ) -> Dict[str, Any]:
+        """List all versions of a container."""
+        container_path = args["container_path"]
+        include_deleted = args.get("include_deleted", False)
+        
+        versions = client.list_versions(container_path, include_deleted)
+        return {
+            "versions": [
+                {
+                    "containerVersionId": ver.get("containerVersionId"),
+                    "name": ver.get("name"),
+                    "path": ver.get("path"),
+                    "deleted": ver.get("deleted", False),
+                }
+                for ver in versions
+            ]
+        }
+
+    async def _get_version(
+        self, args: Dict[str, Any], client: GTMClient
+    ) -> Dict[str, Any]:
+        """Get details of a specific container version."""
+        version_path = args["version_path"]
+        version = client.get_version(version_path)
+        return {"version": version}
+
+    async def _get_live_version(
+        self, args: Dict[str, Any], client: GTMClient
+    ) -> Dict[str, Any]:
+        """Get the currently published (live) version."""
+        container_path = args["container_path"]
+        version = client.get_live_version(container_path)
+        return {"version": version}
+
+    async def _get_latest_version(
+        self, args: Dict[str, Any], client: GTMClient
+    ) -> Dict[str, Any]:
+        """Get the latest version header."""
+        container_path = args["container_path"]
+        version = client.get_latest_version(container_path)
+        return {"version": version}
+
+    async def _delete_version(
+        self, args: Dict[str, Any], client: GTMClient
+    ) -> Dict[str, Any]:
+        """Delete (archive) a container version."""
+        version_path = args["version_path"]
+        client.delete_version(version_path)
+        return {
+            "success": True,
+            "message": f"Version deleted successfully: {version_path}"
+        }
+
+    async def _undelete_version(
+        self, args: Dict[str, Any], client: GTMClient
+    ) -> Dict[str, Any]:
+        """Restore a deleted version."""
+        version_path = args["version_path"]
+        version = client.undelete_version(version_path)
+        return {
+            "success": True,
+            "version": {
+                "containerVersionId": version.get("containerVersion", {}).get("containerVersionId"),
+                "name": version.get("containerVersion", {}).get("name"),
+                "path": version.get("containerVersion", {}).get("path"),
+            }
+        }
+
+    async def _update_version(
+        self, args: Dict[str, Any], client: GTMClient
+    ) -> Dict[str, Any]:
+        """Update version metadata."""
+        version_path = args["version_path"]
+        version_data = args["version_data"]
+        version = client.update_version(version_path, version_data)
+        return {
+            "success": True,
+            "version": {
+                "containerVersionId": version.get("containerVersionId"),
+                "name": version.get("name"),
+                "path": version.get("path"),
+            }
+        }
+
+    async def _set_latest_version(
+        self, args: Dict[str, Any], client: GTMClient
+    ) -> Dict[str, Any]:
+        """Set a version as the latest version."""
+        version_path = args["version_path"]
+        version = client.set_latest_version(version_path)
+        return {
+            "success": True,
+            "version": {
+                "containerVersionId": version.get("containerVersion", {}).get("containerVersionId"),
+                "name": version.get("containerVersion", {}).get("name"),
+                "path": version.get("containerVersion", {}).get("path"),
+            }
+        }

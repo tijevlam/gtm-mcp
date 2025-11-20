@@ -278,3 +278,102 @@ class GTMClient:
             ).execute()
         except HttpError as e:
             raise Exception(f"Failed to publish version: {e}")
+
+    def list_versions(self, container_path: str, include_deleted: bool = False) -> List[Dict[str, Any]]:
+        """List all versions of a container."""
+        account_id = self.extract_account_id_from_path(container_path)
+        self.validate_account_access(account_id)
+
+        try:
+            response = self.service.accounts().containers().version_headers().list(
+                parent=container_path,
+                includeDeleted=include_deleted
+            ).execute()
+            return response.get('containerVersionHeader', [])
+        except HttpError as e:
+            raise Exception(f"Failed to list versions: {e}")
+
+    def get_version(self, version_path: str) -> Dict[str, Any]:
+        """Get details of a specific container version."""
+        account_id = self.extract_account_id_from_path(version_path)
+        self.validate_account_access(account_id)
+
+        try:
+            return self.service.accounts().containers().versions().get(
+                path=version_path
+            ).execute()
+        except HttpError as e:
+            raise Exception(f"Failed to get version: {e}")
+
+    def get_live_version(self, container_path: str) -> Dict[str, Any]:
+        """Get the currently published (live) version of a container."""
+        account_id = self.extract_account_id_from_path(container_path)
+        self.validate_account_access(account_id)
+
+        try:
+            return self.service.accounts().containers().versions().live(
+                parent=container_path
+            ).execute()
+        except HttpError as e:
+            raise Exception(f"Failed to get live version: {e}")
+
+    def get_latest_version(self, container_path: str) -> Dict[str, Any]:
+        """Get the latest version header of a container."""
+        account_id = self.extract_account_id_from_path(container_path)
+        self.validate_account_access(account_id)
+
+        try:
+            return self.service.accounts().containers().version_headers().latest(
+                parent=container_path
+            ).execute()
+        except HttpError as e:
+            raise Exception(f"Failed to get latest version: {e}")
+
+    def delete_version(self, version_path: str) -> None:
+        """Delete (archive) a container version."""
+        account_id = self.extract_account_id_from_path(version_path)
+        self.validate_account_access(account_id)
+
+        try:
+            self.service.accounts().containers().versions().delete(
+                path=version_path
+            ).execute()
+        except HttpError as e:
+            raise Exception(f"Failed to delete version: {e}")
+
+    def undelete_version(self, version_path: str) -> Dict[str, Any]:
+        """Restore a previously deleted (archived) container version."""
+        account_id = self.extract_account_id_from_path(version_path)
+        self.validate_account_access(account_id)
+
+        try:
+            return self.service.accounts().containers().versions().undelete(
+                path=version_path
+            ).execute()
+        except HttpError as e:
+            raise Exception(f"Failed to undelete version: {e}")
+
+    def update_version(self, version_path: str, version_data: Dict[str, Any]) -> Dict[str, Any]:
+        """Update a container version's metadata (name, description, notes)."""
+        account_id = self.extract_account_id_from_path(version_path)
+        self.validate_account_access(account_id)
+
+        try:
+            return self.service.accounts().containers().versions().update(
+                path=version_path,
+                body=version_data
+            ).execute()
+        except HttpError as e:
+            raise Exception(f"Failed to update version: {e}")
+
+    def set_latest_version(self, version_path: str) -> Dict[str, Any]:
+        """Set a container version as the latest version."""
+        account_id = self.extract_account_id_from_path(version_path)
+        self.validate_account_access(account_id)
+
+        try:
+            return self.service.accounts().containers().versions().set_latest(
+                path=version_path
+            ).execute()
+        except HttpError as e:
+            raise Exception(f"Failed to set latest version: {e}")
