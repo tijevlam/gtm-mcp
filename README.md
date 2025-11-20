@@ -69,25 +69,27 @@ See [PyPi](https://pypi.org/project/gtm-mcp/)
 
 GTM MCP supports two authentication methods. Choose the one that best fits your needs:
 
-#### **Method A: Service Account (Recommended for Servers)**
+#### **Method A: Application Default Credentials (Recommended for Servers)**
 
 **Best for:**
 - ✅ Server environments and automation
 - ✅ No browser interaction required
-- ✅ Simpler token management
+- ✅ Flexible credential sources
 - ✅ Better for CI/CD pipelines
+- ✅ Works on Google Cloud (GCE, GKE, Cloud Run)
 
 **Pros:**
 - No OAuth consent screen setup required
 - No browser popup for authorization
-- Credentials are managed through a JSON file
+- Automatic credential discovery from multiple sources
 - Automatic token refresh
+- Works with gcloud CLI, service account files, or cloud environment
 
 **Cons:**
-- Requires service account setup in Google Cloud
+- Requires initial credential setup (service account or gcloud CLI)
 - Need to manually grant service account access to GTM
 
-[→ Go to Service Account Setup](#service-account-setup-method-a)
+[→ Go to Application Default Credentials Setup](#application-default-credentials-setup-method-a)
 
 ---
 
@@ -112,10 +114,20 @@ GTM MCP supports two authentication methods. Choose the one that best fits your 
 
 ---
 
-### Service Account Setup (Method A)
+### Application Default Credentials Setup (Method A)
 [⬆ top](#gtm-mcp-server)
 
-#### Step 1: Create a Google Cloud Project
+Application Default Credentials (ADC) is Google's recommended way to authenticate applications. It automatically discovers credentials from multiple sources in the following order:
+
+1. **GOOGLE_APPLICATION_CREDENTIALS** environment variable pointing to a service account JSON file
+2. **gcloud CLI** credentials (`gcloud auth application-default login`)
+3. **Cloud environment** service accounts (GCE, GKE, Cloud Run, etc.)
+
+Choose the option that works best for you:
+
+#### Option 1: Service Account File (Most Common)
+
+##### Step 1: Create a Google Cloud Project
 
 1. Go to [Google Cloud Console](https://console.cloud.google.com/)
 2. Click on the project dropdown (top left)
@@ -124,14 +136,14 @@ GTM MCP supports two authentication methods. Choose the one that best fits your 
 5. Click **"Create"**
 6. Wait for the project to be created and select it
 
-#### Step 2: Enable Tag Manager API
+##### Step 2: Enable Tag Manager API
 
 1. In your project, go to **"APIs & Services"** → **"Library"**
 2. Search for **"Tag Manager API"**
 3. Click on it and click **"Enable"**
 4. Wait for it to enable (may take a minute)
 
-#### Step 3: Create Service Account
+##### Step 3: Create Service Account
 
 1. Go to **"APIs & Services"** → **"Credentials"**
 2. Click **"Create Credentials"** → **"Service Account"**
@@ -142,7 +154,7 @@ GTM MCP supports two authentication methods. Choose the one that best fits your 
 4. Click **"Create and Continue"**
 5. Skip the optional steps and click **"Done"**
 
-#### Step 4: Create and Download Service Account Key
+##### Step 4: Create and Download Service Account Key
 
 1. Click on the service account you just created
 2. Go to the **"Keys"** tab
@@ -153,7 +165,7 @@ GTM MCP supports two authentication methods. Choose the one that best fits your 
 7. **Save this file securely** - you'll need its path later
 8. **Copy the service account email** from the JSON file (looks like: `gtm-mcp-service@your-project.iam.gserviceaccount.com`)
 
-#### Step 5: Grant Service Account Access to GTM
+##### Step 5: Grant Service Account Access to GTM
 
 1. Go to [Google Tag Manager](https://tagmanager.google.com/)
 2. Select your GTM account
@@ -168,7 +180,7 @@ GTM MCP supports two authentication methods. Choose the one that best fits your 
    - **Publish**: For full publishing rights
 8. Click **"Invite"**
 
-#### Step 6: Configure Claude Desktop (Service Account)
+##### Step 6: Configure Claude Desktop (Service Account File)
 
 Edit your Claude Desktop config file:
 
@@ -198,11 +210,78 @@ Add your configuration:
 - Linux/macOS: `/home/username/gtm-service-account.json`
 - Windows: `C:\\Users\\YourName\\gtm-service-account.json`
 
-#### Step 7: Restart and Test
+---
+
+#### Option 2: gcloud CLI Credentials (Simplest for Local Development)
+
+If you have the Google Cloud SDK installed and want to use your own Google account credentials:
+
+##### Step 1: Install Google Cloud SDK
+
+If not already installed, follow the [Google Cloud SDK installation guide](https://cloud.google.com/sdk/docs/install).
+
+##### Step 2: Authenticate with Application Default Credentials
+
+```bash
+gcloud auth application-default login
+```
+
+This will open a browser window to authenticate with your Google account and save credentials locally.
+
+##### Step 3: Grant Your Account Access to GTM
+
+Ensure your Google account has the appropriate permissions in Google Tag Manager (see Step 5 in Option 1, but use your Google account email instead of a service account email).
+
+##### Step 4: Configure Claude Desktop (gcloud CLI)
+
+Edit your Claude Desktop config file:
+
+```json
+{
+  "mcpServers": {
+    "gtm-mcp": {
+      "command": "gtm-mcp",
+      "env": {
+        "GTM_AUTH_METHOD": "service_account"
+      }
+    }
+  }
+}
+```
+
+**Note**: No `GOOGLE_APPLICATION_CREDENTIALS` is needed when using gcloud CLI credentials.
+
+---
+
+#### Option 3: Cloud Environment (GCE, GKE, Cloud Run)
+
+If you're running in a Google Cloud environment, ADC will automatically use the attached service account.
+
+##### Step 1: Attach Service Account to Your Resource
+
+When creating your GCE instance, GKE pod, or Cloud Run service, attach a service account with the necessary permissions.
+
+##### Step 2: Grant Service Account Access to GTM
+
+Follow Step 5 from Option 1 to grant the service account access to your GTM account.
+
+##### Step 3: Configure Your Application
+
+Set the environment variable:
+
+```bash
+GTM_AUTH_METHOD=service_account
+```
+
+No `GOOGLE_APPLICATION_CREDENTIALS` is needed - ADC will automatically discover the attached service account.
+
+---
+
+#### Restart and Test
 
 1. **Restart Claude Desktop** completely
 2. Ask Claude: "List my GTM accounts"
-3. The service account will authenticate automatically - no browser popup needed!
+3. ADC will authenticate automatically - no browser popup needed!
 
 [→ Skip to Available Tools](#%EF%B8%8F-available-tools)
 
@@ -340,22 +419,29 @@ Once configured, Claude will have access to these GTM tools:
 [⬆ top](#gtm-mcp-server) </br>
 This MCP server supports two authentication methods:
 
-### Method A: Service Account Authentication
+### Method A: Application Default Credentials (ADC)
 
-With service account authentication:
+With Application Default Credentials (ADC) authentication:
 
-1. **You create a service account** in your Google Cloud project
-2. **Download the JSON key file** for the service account
-3. **Grant the service account access** to your GTM account
-4. **Point to the JSON file** using the `GOOGLE_APPLICATION_CREDENTIALS` environment variable
-5. **Automatic authentication** - no browser interaction required
-6. **Tokens are managed automatically** by Google's auth library
+1. **ADC automatically discovers credentials** from multiple sources:
+   - `GOOGLE_APPLICATION_CREDENTIALS` environment variable pointing to a service account JSON file
+   - Google Cloud SDK credentials (`gcloud auth application-default login`)
+   - Service account attached to GCE/GKE/Cloud Run instances
+   - Other Google Cloud environments
+2. **Grant the account access** to your GTM account
+3. **Automatic authentication** - no browser interaction required
+4. **Tokens are managed automatically** by Google's auth library
 
 **Benefits:**
 - ✅ No browser interaction required
 - ✅ Perfect for server environments
 - ✅ Automatic token refresh
-- ✅ Simple credential management via JSON file
+- ✅ Flexible credential sources
+- ✅ Works seamlessly in Google Cloud environments
+- ✅ Simple for local development with gcloud CLI
+
+**How it works:**
+When you set `GTM_AUTH_METHOD=service_account`, the library uses `google.auth.default()` to automatically discover credentials. This is the same approach used by the official Google Analytics MCP server and is Google's recommended authentication method.
 
 ### Method B: OAuth 2.0 Authentication (Default)
 
@@ -382,38 +468,47 @@ Run `pip install --upgrade gtm-mcp`
 ## ❓ Troubleshooting
 [⬆ top](#gtm-mcp-server)
 
-### Service Account Issues
+### Application Default Credentials (ADC) Issues
 
-#### "Missing service account credentials" Error
+#### "Failed to load Application Default Credentials" Error
 
-**Problem**: The MCP server can't find your service account JSON file.
+**Problem**: The MCP server can't discover any credentials using ADC.
 
-**Solution**: Make sure you:
-- Set `GTM_AUTH_METHOD=service_account` in your config
-- Set `GOOGLE_APPLICATION_CREDENTIALS` to the correct path
-- The path points to a valid JSON file
-- The file is accessible and not corrupted
-- Restarted Claude Desktop after editing the config
+**Solution**: Choose one of these credential sources:
+
+1. **Using a service account file:**
+   - Set `GOOGLE_APPLICATION_CREDENTIALS` to the path of your service account JSON file
+   - Ensure the path is absolute and points to a valid JSON file
+   - On Windows, use double backslashes: `C:\\Users\\...`
+   - Restart Claude Desktop after editing the config
+
+2. **Using gcloud CLI:**
+   - Run `gcloud auth application-default login`
+   - Follow the browser flow to authenticate
+   - Ensure your Google account has GTM access
+   - Restart Claude Desktop
+
+3. **Running on Google Cloud:**
+   - Ensure your GCE/GKE/Cloud Run resource has a service account attached
+   - Grant the service account access to your GTM account
 
 #### "Service account has no access" Error
 
-**Problem**: The service account can't access your GTM account.
+**Problem**: The service account or user account can't access your GTM account.
 
 **Solution**:
 1. Go to GTM → Admin → User Management
-2. Verify the service account email is listed with appropriate permissions
-3. If not listed, add the service account email from your JSON file
-4. Grant at least "Read" permission (or higher based on your needs)
+2. Verify the account email is listed with appropriate permissions
+3. For service accounts: add the service account email from your JSON file
+4. For gcloud CLI: add your Google account email
+5. Grant at least "Read" permission (or higher based on your needs)
 
-#### Service Account JSON File Not Found
+#### Which Authentication Method Am I Using?
 
-**Problem**: Error message says the credentials file doesn't exist.
-
-**Solution**:
-- Double-check the path in `GOOGLE_APPLICATION_CREDENTIALS`
-- Use absolute paths, not relative paths
-- On Windows, use double backslashes: `C:\\Users\\...`
-- Ensure the file has the correct extension (.json)
+Check your `claude_desktop_config.json`:
+- If you see `GTM_AUTH_METHOD: "service_account"` → **Application Default Credentials (ADC)**
+- If you see `GTM_CLIENT_ID`, `GTM_CLIENT_SECRET` → **OAuth 2.0**
+- If no `GTM_AUTH_METHOD` is set → **OAuth 2.0** (default)
 
 ### OAuth 2.0 Issues
 
@@ -451,15 +546,8 @@ This is safe because **you control the app**.
 **Solution**:
 1. Verify your Google account or service account has GTM access
 2. For OAuth: Re-authorize by deleting `~/.gtm-mcp/token.json` and trying again
-3. For Service Account: Check GTM user management for the service account email
+3. For ADC/Service Account: Check GTM user management for the service account or user account email
 4. Check that Tag Manager API is enabled in Google Cloud Console
-
-#### Which Authentication Method Am I Using?
-
-Check your `claude_desktop_config.json`:
-- If you see `GTM_AUTH_METHOD: "service_account"` and `GOOGLE_APPLICATION_CREDENTIALS` → **Service Account**
-- If you see `GTM_CLIENT_ID`, `GTM_CLIENT_SECRET` → **OAuth 2.0**
-- If no `GTM_AUTH_METHOD` is set → **OAuth 2.0** (default)
 
 ### Connection Issues
 
@@ -468,7 +556,7 @@ Check your `claude_desktop_config.json`:
 2. Check Claude Desktop logs for MCP server errors
 3. Verify `gtm-mcp` command works: run `gtm-mcp` in terminal
 4. Check your config file is valid JSON
-5. Ensure all three environment variables are set correctly
+5. Ensure all required environment variables are set correctly
 
 ### Package Not Found After Install
 
@@ -493,11 +581,19 @@ pipx install gtm-mcp
 
 You can re-authorize anytime by using any GTM tool in Claude again.
 
-**For Service Account:**
+**For Application Default Credentials (ADC):**
+
+*If using a service account file:*
 1. Go to GTM → Admin → User Management
 2. Find the service account email
 3. Click the remove button to revoke access
-4. Optionally delete the service account from Google Cloud Console
+4. Optionally delete the service account key from Google Cloud Console
+
+*If using gcloud CLI:*
+1. Go to GTM → Admin → User Management
+2. Find your Google account email
+3. Click the remove button to revoke access
+4. Optionally revoke ADC locally: `gcloud auth application-default revoke`
 
 ---
 
@@ -511,7 +607,7 @@ You can re-authorize anytime by using any GTM tool in Claude again.
 - You can regenerate credentials anytime in Google Cloud Console
 - You can revoke access anytime from your Google account settings
 
-### For Service Account:
+### For Application Default Credentials (ADC):
 - **Keep your JSON key file secure** - it provides full access
 - **Never commit the JSON file to version control** - add it to `.gitignore`
 - **Use restrictive file permissions** - `chmod 600 service-account.json` on Unix/Linux
