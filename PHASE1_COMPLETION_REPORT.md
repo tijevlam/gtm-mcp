@@ -89,7 +89,7 @@ Phase 1 of the GTM MCP server enhancement has been successfully completed. This 
 
 ```
 /home/etma/work/mcps/gtm-mcp/
-├── src/gtm_mcp/
+├── src/unboundai_gtm_mcp/
 │   ├── __init__.py              (Updated with exports)
 │   ├── exceptions.py            (NEW - 201 lines)
 │   ├── constants.py             (NEW - 229 lines)
@@ -121,7 +121,7 @@ trigger_config = {
 **After:**
 ```python
 # Success - correct structure automatically
-from gtm_mcp.helpers import build_scroll_percentage_list
+from unboundai_gtm_mcp.helpers import build_scroll_percentage_list
 scroll_config = build_scroll_percentage_list([25, 50, 75])
 ```
 
@@ -164,14 +164,14 @@ All modules integrate correctly with:
 
 ### 1. Type Safety
 ```python
-from gtm_mcp.constants import TriggerType
+from unboundai_gtm_mcp.constants import TriggerType
 trigger_type = TriggerType.SCROLL_DEPTH.value  # IDE autocomplete
 ```
 
 ### 2. Validation
 ```python
-from gtm_mcp.validators import validate_ga4_event_name
-from gtm_mcp.exceptions import ValidationError
+from unboundai_gtm_mcp.validators import validate_ga4_event_name
+from unboundai_gtm_mcp.exceptions import ValidationError
 
 try:
     event_name = validate_ga4_event_name("123invalid")
@@ -182,7 +182,7 @@ except ValidationError as e:
 
 ### 3. Helper Functions
 ```python
-from gtm_mcp.helpers import build_ga4_event_tag
+from unboundai_gtm_mcp.helpers import build_ga4_event_tag
 
 tag = build_ga4_event_tag(
     name="GA4 - Purchase",

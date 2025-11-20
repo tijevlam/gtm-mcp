@@ -3,9 +3,9 @@
 import pytest
 from unittest.mock import AsyncMock, MagicMock, patch
 
-from gtm_mcp.exceptions import ParameterFormatError
-from gtm_mcp.helpers import build_custom_event_filter
-from gtm_mcp.tools import GTMTools
+from unboundai_gtm_mcp.exceptions import ParameterFormatError
+from unboundai_gtm_mcp.helpers import build_custom_event_filter
+from unboundai_gtm_mcp.tools import GTMTools
 
 
 class TestBuildCustomEventFilter:

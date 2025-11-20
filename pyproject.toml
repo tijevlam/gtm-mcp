@@ -1,6 +1,6 @@
 [tool.poetry]
-name = "gtm-mcp"
-version = "0.0.1"
+name = "unboundai-gtm-mcp"
+version = "0.0.5"
 description = "MCP server for Google Tag Manager"
 authors = ["Paolo Bietolini", "Tije Vlam"]
 license = "MIT"
@@ -21,7 +21,7 @@ classifiers = [
     "Topic :: Software Development :: Libraries :: Python Modules",
     "Topic :: Internet :: WWW/HTTP :: Dynamic Content",
 ]
-packages = [{ include = "gtm_mcp", from = "src" }]
+packages = [{ include = "unboundai_gtm_mcp", from = "src" }]
 
 [tool.poetry.dependencies]
 python = "^3.10"
@@ -33,7 +33,7 @@ protobuf = "^6.33.0"
 python-dotenv = "^1.2.1"
 
 [tool.poetry.scripts]
-gtm-mcp = "gtm_mcp.server:run"
+unboundai-gtm-mcp = "unboundai_gtm_mcp.server:run"
 
 [build-system]
 requires = ["poetry-core>=1.0.0"]

@@ -48,7 +48,7 @@ Update `/home/etma/work/Vertisky/customers/ProSun/.mcp.json`:
   "mcpServers": {
     "gtm": {
       "command": "/home/etma/work/mcps/gtm-mcp/.venv/bin/python3",
-      "args": ["-m", "gtm_mcp.server"],
+      "args": ["-m", "unboundai_gtm_mcp.server"],
       "env": {
         "GTM_CREDENTIALS_FILE": "/home/etma/work/Vertisky/customers/ProSun/.config/google/client_secret_gtm.json",
         "GTM_TOKEN_FILE": "/home/etma/work/Vertisky/customers/ProSun/.config/google/gtm_token.json",

@@ -4,7 +4,7 @@ import os
 import pytest
 from pathlib import Path
 from unittest.mock import Mock, patch, MagicMock
-from gtm_mcp.utils import GTMAuth
+from unboundai_gtm_mcp.utils import GTMAuth
 
 
 class TestGTMAuth:
@@ -45,8 +45,8 @@ class TestGTMAuth:
             with pytest.raises(ValueError, match="Invalid GTM_AUTH_METHOD"):
                 auth.authenticate()
 
-    @patch('gtm_mcp.utils.service_account.Credentials.from_service_account_file')
-    @patch('gtm_mcp.utils.build')
+    @patch('unboundai_gtm_mcp.utils.service_account.Credentials.from_service_account_file')
+    @patch('unboundai_gtm_mcp.utils.build')
     def test_authenticate_service_account_success(
         self, mock_build, mock_sa_creds, mock_token_file, mock_scopes, tmp_path
     ):
@@ -97,9 +97,9 @@ class TestGTMAuth:
             with pytest.raises(ValueError, match="Service account file not found"):
                 auth.authenticate()
 
-    @patch('gtm_mcp.utils.InstalledAppFlow.from_client_config')
-    @patch('gtm_mcp.utils.Credentials.from_authorized_user_file')
-    @patch('gtm_mcp.utils.build')
+    @patch('unboundai_gtm_mcp.utils.InstalledAppFlow.from_client_config')
+    @patch('unboundai_gtm_mcp.utils.Credentials.from_authorized_user_file')
+    @patch('unboundai_gtm_mcp.utils.build')
     def test_authenticate_oauth_existing_valid_token(
         self, mock_build, mock_creds_from_file, mock_flow_class, mock_token_file, mock_scopes
     ):

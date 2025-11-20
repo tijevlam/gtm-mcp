@@ -105,7 +105,7 @@ Update `/home/etma/work/Vertisky/customers/ProSun/.mcp.json`:
   "mcpServers": {
     "gtm": {
       "command": "/home/etma/work/mcps/gtm-mcp/.venv/bin/python3",
-      "args": ["-m", "gtm_mcp.server"],
+      "args": ["-m", "unboundai_gtm_mcp.server"],
       "env": {
         "GTM_CREDENTIALS_FILE": "/home/etma/work/Vertisky/customers/ProSun/.config/google/client_secret_gtm.json",
         "GTM_TOKEN_FILE": "/home/etma/work/Vertisky/customers/ProSun/.config/google/gtm_token.json",
@@ -121,13 +121,13 @@ Update `/home/etma/work/Vertisky/customers/ProSun/.mcp.json`:
 ### 1. Code Verification
 ```bash
 cd /home/etma/work/mcps/gtm-mcp
-.venv/bin/python3 -m py_compile src/gtm_mcp/*.py
+.venv/bin/python3 -m py_compile src/unboundai_gtm_mcp/*.py
 # ✓ All files compile successfully
 ```
 
 ### 2. Import Verification
 ```bash
-.venv/bin/python3 -c "from src.gtm_mcp.gtm_client import GTMClient; print('✓ Import successful')"
+.venv/bin/python3 -c "from src.unboundai_gtm_mcp.gtm_client import GTMClient; print('✓ Import successful')"
 # ✓ Import successful
 ```
 
@@ -247,7 +247,7 @@ To rollback if needed:
 To completely remove the feature:
 ```bash
 cd /home/etma/work/mcps/gtm-mcp
-git checkout src/gtm_mcp/gtm_client.py
+git checkout src/unboundai_gtm_mcp/gtm_client.py
 ```
 
 ## Deployment Checklist

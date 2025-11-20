@@ -2,7 +2,7 @@
 
 import pytest
 
-from gtm_mcp.exceptions import (
+from unboundai_gtm_mcp.exceptions import (
     APIError,
     ConfigurationError,
     GTMError,

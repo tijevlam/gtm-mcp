@@ -15,7 +15,7 @@ Add the `GTM_ACCOUNT_ID` environment variable to your MCP configuration:
   "mcpServers": {
     "gtm": {
       "command": "/path/to/.venv/bin/python3",
-      "args": ["-m", "gtm_mcp.server"],
+      "args": ["-m", "unboundai_gtm_mcp.server"],
       "env": {
         "GTM_CREDENTIALS_FILE": "/path/to/client_secret.json",
         "GTM_TOKEN_FILE": "/path/to/token.json",
@@ -121,7 +121,7 @@ For the ProSun customer with account ID `6321366409`:
   "mcpServers": {
     "gtm": {
       "command": "/home/etma/work/mcps/gtm-mcp/.venv/bin/python3",
-      "args": ["-m", "gtm_mcp.server"],
+      "args": ["-m", "unboundai_gtm_mcp.server"],
       "env": {
         "GTM_CREDENTIALS_FILE": "/home/etma/work/Vertisky/customers/ProSun/.config/google/client_secret_gtm.json",
         "GTM_TOKEN_FILE": "/home/etma/work/Vertisky/customers/ProSun/.config/google/gtm_token.json",

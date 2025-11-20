@@ -15,6 +15,7 @@ load_dotenv()
 
 class GTMMCPServer:
     """MCP Server for Google Tag Manager operations."""
+    """MCP Server for Google Tag Manager operations."""
 
     def __init__(self):
         self.server = Server("gtm-mcp")

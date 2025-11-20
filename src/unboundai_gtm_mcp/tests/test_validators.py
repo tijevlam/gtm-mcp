@@ -2,8 +2,8 @@
 
 import pytest
 
-from gtm_mcp.exceptions import ValidationError
-from gtm_mcp.validators import (
+from unboundai_gtm_mcp.exceptions import ValidationError
+from unboundai_gtm_mcp.validators import (
     validate_account_id,
     validate_container_id,
     validate_css_selector,

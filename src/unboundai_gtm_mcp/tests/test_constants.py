@@ -2,7 +2,7 @@
 
 import pytest
 
-from gtm_mcp.constants import (
+from unboundai_gtm_mcp.constants import (
     BUILT_IN_VARIABLES,
     DEFAULT_WORKSPACE,
     GA4_EVENT_NAME_MAX_LENGTH,
@@ -261,7 +261,7 @@ class TestGA4Constraints:
 
     def test_ga4_parameter_value_max_length(self):
         """Test GA4 parameter value max length."""
-        from gtm_mcp.constants import GA4_PARAMETER_VALUE_MAX_LENGTH
+        from unboundai_gtm_mcp.constants import GA4_PARAMETER_VALUE_MAX_LENGTH
         assert GA4_PARAMETER_VALUE_MAX_LENGTH == 100
 
 

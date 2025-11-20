@@ -2,8 +2,8 @@
 
 import pytest
 
-from gtm_mcp.exceptions import ParameterFormatError
-from gtm_mcp.helpers import (
+from unboundai_gtm_mcp.exceptions import ParameterFormatError
+from unboundai_gtm_mcp.helpers import (
     build_boolean_parameter,
     build_click_filter,
     build_container_path,
