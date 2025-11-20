@@ -1,5 +1,6 @@
 """GTM tool implementations for MCP."""
 
+import asyncio
 from typing import Any, Dict, Optional
 from .gtm_client import GTMClient
 from .helpers import build_custom_event_filter
@@ -304,14 +305,14 @@ class GTMTools:
         version_notes = args.get("version_notes", "")
 
         # Create version
-        version = client.create_version(workspace_path, version_name, version_notes)
+        version = await asyncio.to_thread(client.create_version, workspace_path, version_name, version_notes)
         version_path = version.get("containerVersion", {}).get("path")
 
         if not version_path:
             raise ValueError("Failed to create version")
 
         # Publish version
-        result = client.publish_version(version_path)
+        result = await asyncio.to_thread(client.publish_version, version_path)
         return {
             "success": True,
             "version": {
@@ -478,7 +479,7 @@ class GTMTools:
         container_path = args["container_path"]
         include_deleted = args.get("include_deleted", False)
         
-        versions = client.list_versions(container_path, include_deleted)
+        versions = await asyncio.to_thread(client.list_versions, container_path, include_deleted)
         return {
             "versions": [
                 {
@@ -496,7 +497,7 @@ class GTMTools:
     ) -> Dict[str, Any]:
         """Get details of a specific container version."""
         version_path = args["version_path"]
-        version = client.get_version(version_path)
+        version = await asyncio.to_thread(client.get_version, version_path)
         return {"version": version}
 
     async def _get_live_version(
@@ -504,7 +505,7 @@ class GTMTools:
     ) -> Dict[str, Any]:
         """Get the currently published (live) version."""
         container_path = args["container_path"]
-        version = client.get_live_version(container_path)
+        version = await asyncio.to_thread(client.get_live_version, container_path)
         return {"version": version}
 
     async def _get_latest_version(
@@ -512,7 +513,7 @@ class GTMTools:
     ) -> Dict[str, Any]:
         """Get the latest version header."""
         container_path = args["container_path"]
-        version = client.get_latest_version(container_path)
+        version = await asyncio.to_thread(client.get_latest_version, container_path)
         return {"version": version}
 
     async def _delete_version(
@@ -520,7 +521,7 @@ class GTMTools:
     ) -> Dict[str, Any]:
         """Delete (archive) a container version."""
         version_path = args["version_path"]
-        client.delete_version(version_path)
+        await asyncio.to_thread(client.delete_version, version_path)
         return {
             "success": True,
             "message": f"Version deleted successfully: {version_path}"
@@ -531,7 +532,7 @@ class GTMTools:
     ) -> Dict[str, Any]:
         """Restore a deleted version."""
         version_path = args["version_path"]
-        version = client.undelete_version(version_path)
+        version = await asyncio.to_thread(client.undelete_version, version_path)
         return {
             "success": True,
             "version": {
@@ -547,7 +548,7 @@ class GTMTools:
         """Update version metadata."""
         version_path = args["version_path"]
         version_data = args["version_data"]
-        version = client.update_version(version_path, version_data)
+        version = await asyncio.to_thread(client.update_version, version_path, version_data)
         return {
             "success": True,
             "version": {
@@ -562,7 +563,7 @@ class GTMTools:
     ) -> Dict[str, Any]:
         """Set a version as the latest version."""
         version_path = args["version_path"]
-        version = client.set_latest_version(version_path)
+        version = await asyncio.to_thread(client.set_latest_version, version_path)
         return {
             "success": True,
             "version": {
