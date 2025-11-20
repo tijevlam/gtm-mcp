@@ -299,9 +299,10 @@ class GTMClient:
         self.validate_account_access(account_id)
 
         try:
-            return self.service.accounts().containers().versions().get(
+            result = self.service.accounts().containers().versions().get(
                 path=version_path
             ).execute()
+            return result
         except HttpError as e:
             raise Exception(f"Failed to get version: {e}")
 
@@ -331,9 +332,10 @@ class GTMClient:
         self.validate_account_access(account_id)
 
         try:
-            return self.service.accounts().containers().version_headers().latest(
+            result = self.service.accounts().containers().version_headers().latest(
                 parent=container_path
             ).execute()
+            return result
         except HttpError as e:
             raise Exception(f"Failed to get latest version: {e}")
 
@@ -355,9 +357,10 @@ class GTMClient:
         self.validate_account_access(account_id)
 
         try:
-            return self.service.accounts().containers().versions().undelete(
+            result = self.service.accounts().containers().versions().undelete(
                 path=version_path
             ).execute()
+            return result
         except HttpError as e:
             raise Exception(f"Failed to undelete version: {e}")
 
@@ -367,10 +370,11 @@ class GTMClient:
         self.validate_account_access(account_id)
 
         try:
-            return self.service.accounts().containers().versions().update(
+            result = self.service.accounts().containers().versions().update(
                 path=version_path,
                 body=version_data
             ).execute()
+            return result
         except HttpError as e:
             raise Exception(f"Failed to update version: {e}")
 
@@ -380,8 +384,9 @@ class GTMClient:
         self.validate_account_access(account_id)
 
         try:
-            return self.service.accounts().containers().versions().set_latest(
+            result = self.service.accounts().containers().versions().set_latest(
                 path=version_path
             ).execute()
+            return result
         except HttpError as e:
             raise Exception(f"Failed to set latest version: {e}")
