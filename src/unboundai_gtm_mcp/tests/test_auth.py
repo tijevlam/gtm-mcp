@@ -45,19 +45,20 @@ class TestGTMAuth:
             with pytest.raises(ValueError, match="Invalid GTM_AUTH_METHOD"):
                 auth.authenticate()
 
-    @patch('unboundai_gtm_mcp.utils.service_account.Credentials.from_service_account_file')
+    @patch('unboundai_gtm_mcp.utils.google.auth.default')
     @patch('unboundai_gtm_mcp.utils.build')
     def test_authenticate_service_account_success(
-        self, mock_build, mock_sa_creds, mock_token_file, mock_scopes, tmp_path
+        self, mock_build, mock_default_auth, mock_token_file, mock_scopes, tmp_path
     ):
-        """Test successful service account authentication."""
-        # Create a mock service account file
+        """Test successful service account authentication using ADC."""
+        # Create a mock service account file (for GOOGLE_APPLICATION_CREDENTIALS)
         sa_file = tmp_path / "service-account.json"
         sa_file.write_text('{"type": "service_account"}')
         
-        # Mock the credentials
+        # Mock the credentials returned by google.auth.default
         mock_credentials = MagicMock()
-        mock_sa_creds.return_value = mock_credentials
+        mock_project = "test-project"
+        mock_default_auth.return_value = (mock_credentials, mock_project)
         
         # Mock the build function
         mock_service = MagicMock()
@@ -70,32 +71,50 @@ class TestGTMAuth:
             auth = GTMAuth(mock_token_file, "tagmanager", "v2", mock_scopes)
             service = auth.authenticate()
             
-            # Verify the credentials were loaded
-            mock_sa_creds.assert_called_once_with(str(sa_file), scopes=mock_scopes)
+            # Verify google.auth.default was called with scopes
+            mock_default_auth.assert_called_once_with(scopes=mock_scopes)
             
             # Verify the service was built
             mock_build.assert_called_once_with("tagmanager", "v2", credentials=mock_credentials)
             assert service == mock_service
 
-    def test_authenticate_service_account_missing_env(self, mock_token_file, mock_scopes):
-        """Test service account auth fails without GOOGLE_APPLICATION_CREDENTIALS."""
+    @patch('unboundai_gtm_mcp.utils.google.auth.default')
+    def test_authenticate_service_account_missing_credentials(self, mock_default_auth, mock_token_file, mock_scopes):
+        """Test service account auth fails when ADC cannot find credentials."""
+        # Mock google.auth.default to raise DefaultCredentialsError
+        import google.auth.exceptions
+        mock_default_auth.side_effect = google.auth.exceptions.DefaultCredentialsError("Could not find credentials")
+        
         with patch.dict(os.environ, {"GTM_AUTH_METHOD": "service_account"}, clear=True):
             if "GOOGLE_APPLICATION_CREDENTIALS" in os.environ:
                 del os.environ["GOOGLE_APPLICATION_CREDENTIALS"]
             
             auth = GTMAuth(mock_token_file, "tagmanager", "v2", mock_scopes)
-            with pytest.raises(ValueError, match="Missing service account credentials"):
+            with pytest.raises(ValueError, match="Failed to load Application Default Credentials"):
                 auth.authenticate()
 
-    def test_authenticate_service_account_file_not_found(self, mock_token_file, mock_scopes):
-        """Test service account auth fails when file doesn't exist."""
-        with patch.dict(os.environ, {
-            "GTM_AUTH_METHOD": "service_account",
-            "GOOGLE_APPLICATION_CREDENTIALS": "/nonexistent/file.json"
-        }):
+    @patch('unboundai_gtm_mcp.utils.google.auth.default')
+    def test_authenticate_service_account_gcloud_cli(self, mock_default_auth, mock_token_file, mock_scopes):
+        """Test service account auth works with gcloud CLI credentials."""
+        # Mock credentials from gcloud CLI (no GOOGLE_APPLICATION_CREDENTIALS set)
+        mock_credentials = MagicMock()
+        mock_credentials.token = "mock_token_from_gcloud"
+        mock_project = "gcloud-project"
+        mock_default_auth.return_value = (mock_credentials, mock_project)
+        
+        with patch.dict(os.environ, {"GTM_AUTH_METHOD": "service_account"}, clear=True):
+            if "GOOGLE_APPLICATION_CREDENTIALS" in os.environ:
+                del os.environ["GOOGLE_APPLICATION_CREDENTIALS"]
+            
             auth = GTMAuth(mock_token_file, "tagmanager", "v2", mock_scopes)
-            with pytest.raises(ValueError, match="Service account file not found"):
-                auth.authenticate()
+            with patch('unboundai_gtm_mcp.utils.build') as mock_build:
+                mock_build.return_value = MagicMock()
+                service = auth.authenticate()
+                
+                # Verify google.auth.default was called
+                mock_default_auth.assert_called_once_with(scopes=mock_scopes)
+                # Verify service was created
+                assert service is not None
 
     @patch('unboundai_gtm_mcp.utils.InstalledAppFlow.from_client_config')
     @patch('unboundai_gtm_mcp.utils.Credentials.from_authorized_user_file')
