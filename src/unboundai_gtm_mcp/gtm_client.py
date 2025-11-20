@@ -311,10 +311,18 @@ class GTMClient:
         self.validate_account_access(account_id)
 
         try:
-            return self.service.accounts().containers().versions().live(
+            result = self.service.accounts().containers().versions().live(
                 parent=container_path
             ).execute()
+            return result
         except HttpError as e:
+            # Handle 404 specifically - no published version exists
+            if e.resp.status == 404:
+                raise Exception(
+                    f"No published version found for container {container_path}. "
+                    "Publish a version first using gtm_publish_container."
+                )
+            # Handle other HTTP errors
             raise Exception(f"Failed to get live version: {e}")
 
     def get_latest_version(self, container_path: str) -> Dict[str, Any]:
