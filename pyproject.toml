@@ -1,6 +1,6 @@
 [tool.poetry]
 name = "unboundai-gtm-mcp"
-version = "0.0.5"
+version = "0.1.1"
 description = "MCP server for Google Tag Manager"
 authors = ["Paolo Bietolini", "Tije Vlam"]
 license = "MIT"
