@@ -27,7 +27,6 @@ packages = [{ include = "unboundai_gtm_mcp", from = "src" }]
 python = "^3.10"
 google-api-python-client = "^2.186.0"
 google-auth = "^2.41.0"
-google-auth-oauthlib = "^1.2.3"
 mcp = "^1.20.0"
 protobuf = "^6.33.0"
 python-dotenv = "^1.2.1"
